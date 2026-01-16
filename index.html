@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BrainMaxx — Study App</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* Minimal/no styling per request */
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:16px; }
+    .menu { display:none; }
+    .visible { display:block; }
+    .scroll-question { max-height:200px; overflow:auto; border:1px solid #ddd; padding:8px; white-space:pre-wrap; }
+    .choices { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+    button { padding:8px 12px; cursor:pointer; }
+    .db-list { margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:300px; overflow:auto; }
+    .stats-line { margin:6px 0; }
+    .small { font-size:0.9rem; color:#444; }
+    .center { text-align:center; }
+  </style>
+</head>
+<body>
+  <h1>BrainMaxx</h1>
+
+  <!-- Main Menu -->
+  <div id="menu-main" class="menu visible">
+    <p>Welcome to BrainMaxx — a simple study app.</p>
+    <button id="btn-go-db">Choose Database</button>
+  </div>
+
+  <!-- Database Search Menu -->
+  <div id="menu-db-search" class="menu">
+    <h2>Databases</h2>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input id="db-search-input" type="search" placeholder="Filter databases by name" />
+      <button id="btn-db-search">Search</button>
+      <input id="file-picker" type="file" accept=".tuff" style="display:none" multiple />
+      <button id="btn-upload">Upload .tuff (add to list)</button>
+    </div>
+    <div id="db-list" class="db-list" aria-live="polite"></div>
+    <div style="margin-top:10px;">
+      <button id="btn-back-to-main">Back</button>
+    </div>
+    <p class="small">Tip: Upload .tuff files to add them to the list. Click a database button to start a session.</p>
+  </div>
+
+  <!-- Question Template Menu -->
+  <div id="menu-question" class="menu">
+    <h2 id="db-title">Study Session</h2>
+    <div id="question-scroll" class="scroll-question"></div>
+    <div id="choices" class="choices"></div>
+    <div style="margin-top:12px; display:flex; gap:8px;">
+      <button id="btn-quit">Exit Session</button>
+      <button id="btn-check" disabled>Check Answer</button>
+    </div>
+    <div style="margin-top:8px;">
+      <span class="small">Progress: <span id="progress-current">0</span>/<span id="progress-total">0</span></span>
+    </div>
+  </div>
+
+  <!-- Answered Question Menu -->
+  <div id="menu-answered" class="menu">
+    <h3 id="answered-result" class="center"></h3>
+    <p id="answered-correct" class="center small"></p>
+    <div class="center" style="margin-top:12px;">
+      <button id="btn-continue">Continue</button>
+    </div>
+  </div>
+
+  <!-- Statistics Template Menu -->
+  <div id="menu-stats" class="menu">
+    <h2>Session Statistics</h2>
+    <div id="stats-content"></div>
+    <div style="margin-top:12px;">
+      <button id="btn-stats-back">Back to Databases</button>
+      <button id="btn-stats-main">Main Menu</button>
+    </div>
+  </div>
+
+  <script>
+    // Simple study app logic for .tuff format
+    // Data structures
+    const databases = []; // { name, raw, questions: [{text, choices, correctIndex}] }
+    let currentDB = null; // reference to databases[i]
+    let tempOrder = []; // indexes of unanswered questions (shuffled)
+    let stats = []; // { questionIndex, timeMs, correct }
+    let questionStartTime = 0;
+    let currentQuestionIndex = null; // index in DB.questions currently shown
+    let selectedChoice = null;
+
+    // DOM refs
+    const menuMain = document.getElementById('menu-main');
+    const menuDb = document.getElementById('menu-db-search');
+    const menuQuestion = document.getElementById('menu-question');
+    const menuAnswered = document.getElementById('menu-answered');
+    const menuStats = document.getElementById('menu-stats');
+
+    const btnGoDb = document.getElementById('btn-go-db');
+    const btnBackToMain = document.getElementById('btn-back-to-main');
+    const dbListDiv = document.getElementById('db-list');
+    const dbSearchInput = document.getElementById('db-search-input');
+    const btnDbSearch = document.getElementById('btn-db-search');
+    const filePicker = document.getElementById('file-picker');
+    const btnUpload = document.getElementById('btn-upload');
+
+    const questionScroll = document.getElementById('question-scroll');
+    const choicesDiv = document.getElementById('choices');
+    const btnQuit = document.getElementById('btn-quit');
+    const btnCheck = document.getElementById('btn-check');
+    const progressCurrent = document.getElementById('progress-current');
+    const progressTotal = document.getElementById('progress-total');
+    const dbTitle = document.getElementById('db-title');
+
+    const answeredResult = document.getElementById('answered-result');
+    const answeredCorrect = document.getElementById('answered-correct');
+    const btnContinue = document.getElementById('btn-continue');
+
+    const statsContent = document.getElementById('stats-content');
+    const btnStatsBack = document.getElementById('btn-stats-back');
+    const btnStatsMain = document.getElementById('btn-stats-main');
+
+    // Helpers
+    function showMenu(menuEl) {
+      [menuMain, menuDb, menuQuestion, menuAnswered, menuStats].forEach(m => m.classList.remove('visible'));
+      menuEl.classList.add('visible');
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function parseTuff(name, raw) {
+      // Parse according to spec
+      // 1: description line (ignored)
+      // 2: number of questions
+      // Then each question:
+      //   header: "<nLines>+<nChoices>"
+      //   nLines lines of question text
+      //   nChoices lines of choices
+      //   final line: correct answer index (1-based)
+      const lines = raw.replace(/\r/g,'').split('\n');
+      let i = 0;
+      const description = lines[i++] ?? '';
+      const totalLine = (lines[i++] || '').trim();
+      const total = parseInt(totalLine, 10) || 0;
+      const questions = [];
+
+      for (let q = 0; q < total && i < lines.length; q++) {
+        // skip empty lines until a header is found
+        while (i < lines.length && lines[i].trim() === '') i++;
+        const header = (lines[i++] || '').trim();
+        const m = header.match(/^(\d+)\+(\d+)$/);
+        if (!m) {
+          // malformed - attempt to recover by breaking
+          console.warn('Malformed question header at question', q+1, header);
+          break;
+        }
+        const nLines = parseInt(m[1], 10);
+        const nChoices = parseInt(m[2], 10);
+        const qLines = [];
+        for (let li = 0; li < nLines && i < lines.length; li++) {
+          qLines.push(lines[i++] ?? '');
+        }
+        const choices = [];
+        for (let ci = 0; ci < nChoices && i < lines.length; ci++) {
+          choices.push(lines[i++] ?? '');
+        }
+        // correct answer line
+        let correctRaw = (lines[i++] || '').trim();
+        // if blank lines accidentally, skip until non-empty or end
+        while (correctRaw === '' && i < lines.length) {
+          correctRaw = (lines[i++] || '').trim();
+        }
+        const correct = parseInt(correctRaw, 10);
+        const correctIndex = isNaN(correct) ? 0 : Math.max(0, correct - 1);
+        questions.push({
+          text: qLines.join('\n'),
+          choices,
+          correctIndex
+        });
+      }
+
+      return { name, description, questions };
+    }
+
+    function renderDbList(filter = '') {
+      dbListDiv.innerHTML = '';
+      const f = filter.trim().toLowerCase();
+      databases.forEach((db, idx) => {
+        if (f && !db.name.toLowerCase().includes(f)) return;
+        const wrapper = document.createElement('div');
+        const btnStart = document.createElement('button');
+        btnStart.textContent = `Start: ${db.name} (${db.questions.length} Q)`;
+        btnStart.addEventListener('click', () => startSession(idx));
+        const btnViewRaw = document.createElement('button');
+        btnViewRaw.textContent = 'View Raw';
+        btnViewRaw.style.marginLeft = '8px';
+        btnViewRaw.addEventListener('click', () => {
+          alert(`Raw content of ${db.name}:\n\n${db.raw.slice(0,2000)}${db.raw.length>2000?'\n\n... (truncated)': ''}`);
+        });
+        wrapper.appendChild(btnStart);
+        wrapper.appendChild(btnViewRaw);
+        dbListDiv.appendChild(wrapper);
+      });
+      if (!dbListDiv.children.length) {
+        dbListDiv.textContent = 'No databases found. Upload a .tuff file to add one.';
+      }
+    }
+
+    // Session lifecycle
+    function startSession(dbIndex) {
+      currentDB = databases[dbIndex];
+      if (!currentDB || !currentDB.questions.length) {
+        alert('Selected database is empty or invalid.');
+        return;
+      }
+      // prepare tempOrder and stats
+      tempOrder = currentDB.questions.map((_, i) => i);
+      shuffle(tempOrder);
+      stats = [];
+      dbTitle.textContent = `Study: ${currentDB.name}`;
+      progressTotal.textContent = currentDB.questions.length;
+      showNextQuestion();
+      showMenu(menuQuestion);
+    }
+
+    function showNextQuestion() {
+      // refill when empty
+      if (tempOrder.length === 0) {
+        tempOrder = currentDB.questions.map((_, i) => i);
+        shuffle(tempOrder);
+      }
+      currentQuestionIndex = tempOrder.shift();
+      const q = currentDB.questions[currentQuestionIndex];
+      // render
+      questionScroll.textContent = q.text;
+      choicesDiv.innerHTML = '';
+      selectedChoice = null;
+      btnCheck.disabled = true;
+      q.choices.forEach((c, idx) => {
+        const b = document.createElement('button');
+        b.textContent = c;
+        b.dataset.index = idx;
+        b.addEventListener('click', () => {
+          selectedChoice = idx;
+          // visual selection
+          Array.from(choicesDiv.children).forEach(ch => ch.style.outline = '');
+          b.style.outline = '2px solid #000';
+          btnCheck.disabled = false;
+        });
+        choicesDiv.appendChild(b);
+      });
+      // progress (how many answered so far + 1?) We'll show number of distinct questions in current cycle:
+      const answeredCount = stats.length;
+      progressCurrent.textContent = answeredCount + 1;
+      // start timer
+      questionStartTime = performance.now();
+    }
+
+    function checkAnswer() {
+      if (selectedChoice === null) return;
+      const q = currentDB.questions[currentQuestionIndex];
+      const elapsed = performance.now() - questionStartTime;
+      const correct = selectedChoice === q.correctIndex;
+      stats.push({ questionIndex: currentQuestionIndex, timeMs: elapsed, correct });
+      answeredResult.textContent = correct ? 'Correct!' : 'Incorrect';
+      answeredCorrect.textContent = `Correct answer: ${q.choices[q.correctIndex]}`;
+      showMenu(menuAnswered);
+    }
+
+    function endSession() {
+      // compute stats and show
+      const total = stats.length || 0;
+      const correctCount = stats.filter(s => s.correct).length;
+      const averageMs = total ? (stats.reduce((a,b) => a + b.timeMs, 0) / total) : 0;
+      const accuracy = total ? (correctCount / total) * 100 : 0;
+
+      statsContent.innerHTML = '';
+      const lines = [
+        {k:'Total answered', v: total},
+        {k:'Correct', v: `${correctCount} (${accuracy.toFixed(1)}%)`},
+        {k:'Average time', v: `${(averageMs/1000).toFixed(2)}s`},
+      ];
+      lines.forEach(l => {
+        const div = document.createElement('div');
+        div.className = 'stats-line';
+        div.textContent = `${l.k}: ${l.v}`;
+        statsContent.appendChild(div);
+      });
+
+      // optionally show per-question summary
+      const perQ = document.createElement('details');
+      perQ.innerHTML = `<summary>Per-question details (${stats.length})</summary>`;
+      const list = document.createElement('ol');
+      stats.forEach(s => {
+        const li = document.createElement('li');
+        const q = currentDB.questions[s.questionIndex];
+        li.textContent = `${s.correct ? '✓' : '✗'} ${q.text.split('\n')[0]} — ${(s.timeMs/1000).toFixed(2)}s`;
+        list.appendChild(li);
+      });
+      perQ.appendChild(list);
+      statsContent.appendChild(perQ);
+
+      showMenu(menuStats);
+    }
+
+    // Event bindings
+    btnGoDb.addEventListener('click', () => {
+      renderDbList();
+      showMenu(menuDb);
+    });
+    btnBackToMain.addEventListener('click', () => showMenu(menuMain));
+    btnDbSearch.addEventListener('click', () => renderDbList(dbSearchInput.value));
+    btnUpload.addEventListener('click', () => filePicker.click());
+    filePicker.addEventListener('change', async (ev) => {
+      const files = Array.from(ev.target.files || []);
+      for (const f of files) {
+        try {
+          const text = await f.text();
+          const parsed = parseTuff(f.name, text);
+          parsed.raw = text;
+          parsed.name = f.name.replace(/\.tuff$/i,'') || f.name;
+          databases.push(parsed);
+        } catch (err) {
+          console.error('Failed to read file', f.name, err);
+        }
+      }
+      filePicker.value = '';
+      renderDbList(dbSearchInput.value);
+    });
+
+    btnQuit.addEventListener('click', () => {
+      if (!confirm('Exit session and view statistics?')) return;
+      endSession();
+    });
+
+    btnCheck.addEventListener('click', () => {
+      checkAnswer();
+    });
+
+    btnContinue.addEventListener('click', () => {
+      showNextQuestion();
+      showMenu(menuQuestion);
+    });
+
+    btnStatsBack.addEventListener('click', () => {
+      renderDbList();
+      showMenu(menuDb);
+    });
+    btnStatsMain.addEventListener('click', () => showMenu(menuMain));
+
+    // Keyboard shortcuts (optional convenience)
+    document.addEventListener('keydown', (e) => {
+      if (menuQuestion.classList.contains('visible')) {
+        if (e.key === 'Enter' && !btnCheck.disabled) {
+          checkAnswer();
+        }
+        if (e.key === 'Escape') {
+          btnQuit.click();
+        }
+      } else if (menuAnswered.classList.contains('visible') && e.key === 'Enter') {
+        btnContinue.click();
+      }
+    });
+
+    // Add a small sample database so the app is testable immediately
+    (function addSample() {
+      const sample = `Sample database for Geography
+3
+1+4
+What is the capital of France?
+Paris
+London
+Berlin
+Madrid
+1
+2+4
+Name two contiguous US states that border California.
+Oregon
+Nevada
+Arizona
+Mexico
+2
+3+3
+This question spans three lines.
+Line two of question.
+Line three of question.
+Choice A
+Choice B
+Choice C
+3
+`;
+      const parsed = parseTuff('Sample Geography', sample);
+      parsed.raw = sample;
+      databases.push(parsed);
+    })();
+
+    // initial render
+    renderDbList();
+  </script>
+</body>
+</html>
