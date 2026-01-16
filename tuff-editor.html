@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BrainMaxx — .tuff Editor</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* Very minimal styling */
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:16px; }
+    label { display:block; margin-top:8px; }
+    .row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+    textarea { width:100%; min-height:64px; font-family:inherit; }
+    input[type="text"], input[type="file"] { width:100%; }
+    .choices { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+    .choice-row { display:flex; gap:8px; align-items:center; }
+    button { padding:6px 10px; cursor:pointer; }
+    .question-list { margin-top:12px; border-top:1px solid #ddd; padding-top:8px; max-height:300px; overflow:auto; }
+    .question-item { padding:6px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between; gap:8px; align-items:center; }
+    .small { font-size:0.9rem; color:#444; }
+    .muted { color:#666; font-size:0.9rem; }
+  </style>
+</head>
+<body>
+  <h1>.tuff Editor — BrainMaxx</h1>
+
+  <section>
+    <label>Database description (first line in .tuff):</label>
+    <input id="db-description" type="text" placeholder="Short description for this DB" />
+    <div class="row">
+      <input id="file-load" type="file" accept=".tuff" />
+      <button id="btn-load">Load .tuff</button>
+      <button id="btn-clear">Clear</button>
+      <button id="btn-download" style="margin-left:auto;">Download .tuff</button>
+    </div>
+    <p class="muted">Load a .tuff from your computer to edit it, add/remove questions, then download the updated file.</p>
+  </section>
+
+  <hr/>
+
+  <section>
+    <h2 id="form-title">Add Question</h2>
+    <label>Question text (can be multiple lines):</label>
+    <textarea id="q-text" placeholder="Write the question here. Use new lines for multiple lines of question text."></textarea>
+
+    <label>Choices</label>
+    <div id="choices" class="choices"></div>
+    <div class="row">
+      <button id="btn-add-choice">Add Choice</button>
+      <button id="btn-reset-choices">Reset Choices</button>
+      <div class="small" style="margin-left:auto;">Select the correct choice via radio buttons</div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <button id="btn-add-question">Add Question</button>
+      <button id="btn-update-question" style="display:none;">Update Question</button>
+      <button id="btn-cancel-edit" style="display:none;">Cancel Edit</button>
+    </div>
+  </section>
+
+  <hr/>
+
+  <section>
+    <h2>Questions (<span id="q-count">0</span>)</h2>
+    <div id="question-list" class="question-list"></div>
+  </section>
+
+  <script>
+    // Simple .tuff editor
+    // Data model: questions = [{ text: "line1\nline2", choices: ["A","B"], correctIndex: 0 }]
+    let questions = [];
+    let editingIndex = -1;
+
+    // DOM refs
+    const dbDescription = document.getElementById('db-description');
+    const fileLoad = document.getElementById('file-load');
+    const btnLoad = document.getElementById('btn-load');
+    const btnClear = document.getElementById('btn-clear');
+    const btnDownload = document.getElementById('btn-download');
+
+    const qText = document.getElementById('q-text');
+    const choicesDiv = document.getElementById('choices');
+    const btnAddChoice = document.getElementById('btn-add-choice');
+    const btnResetChoices = document.getElementById('btn-reset-choices');
+    const btnAddQuestion = document.getElementById('btn-add-question');
+    const btnUpdateQuestion = document.getElementById('btn-update-question');
+    const btnCancelEdit = document.getElementById('btn-cancel-edit');
+
+    const qList = document.getElementById('question-list');
+    const qCount = document.getElementById('q-count');
+    const formTitle = document.getElementById('form-title');
+
+    // Helpers
+    function createChoiceInput(value = '', idx = null, checked = false) {
+      const row = document.createElement('div');
+      row.className = 'choice-row';
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'correct';
+      radio.checked = checked;
+      if (idx !== null) radio.dataset.idx = idx;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = value;
+      input.placeholder = 'Choice text';
+
+      const btnRem = document.createElement('button');
+      btnRem.type = 'button';
+      btnRem.textContent = 'Remove';
+      btnRem.addEventListener('click', () => {
+        choicesDiv.removeChild(row);
+      });
+
+      row.appendChild(radio);
+      row.appendChild(input);
+      row.appendChild(btnRem);
+      return row;
+    }
+
+    function resetChoiceFields() {
+      choicesDiv.innerHTML = '';
+      // add two default choices
+      choicesDiv.appendChild(createChoiceInput('', 0, true));
+      choicesDiv.appendChild(createChoiceInput('', 1, false));
+      ensureRadiosIndexed();
+    }
+
+    function ensureRadiosIndexed() {
+      // ensure each radio has dataset.idx matching position
+      Array.from(choicesDiv.children).forEach((row, i) => {
+        const radio = row.querySelector('input[type="radio"]');
+        radio.dataset.idx = i;
+      });
+    }
+
+    function collectChoices() {
+      const rows = Array.from(choicesDiv.children);
+      const choices = rows.map(r => r.querySelector('input[type="text"]').value || '');
+      ensureRadiosIndexed();
+      const checked = rows.findIndex(r => r.querySelector('input[type="radio"]').checked);
+      const correctIndex = checked >= 0 ? checked : 0;
+      return { choices, correctIndex };
+    }
+
+    function validateQuestion(q) {
+      // basic validation
+      if (!q.text || q.text.trim() === '') return 'Question text cannot be empty.';
+      if (!q.choices || q.choices.length < 2) return 'Provide at least two choices.';
+      return null;
+    }
+
+    function renderQuestionList() {
+      qList.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const item = document.createElement('div');
+        item.className = 'question-item';
+        const left = document.createElement('div');
+        left.style.flex = '1';
+        const preview = q.text.split('\n')[0];
+        left.innerHTML = `<strong>#${idx+1}</strong> — ${escapeHtml(preview)} <div class="small">${q.choices.length} choices</div>`;
+
+        const right = document.createElement('div');
+        const btnEdit = document.createElement('button');
+        btnEdit.textContent = 'Edit';
+        btnEdit.addEventListener('click', () => startEdit(idx));
+        const btnDelete = document.createElement('button');
+        btnDelete.textContent = 'Delete';
+        btnDelete.addEventListener('click', () => {
+          if (!confirm('Delete this question?')) return;
+          questions.splice(idx,1);
+          renderQuestionList();
+        });
+        right.appendChild(btnEdit);
+        right.appendChild(btnDelete);
+
+        item.appendChild(left);
+        item.appendChild(right);
+        qList.appendChild(item);
+      });
+      qCount.textContent = questions.length;
+    }
+
+    function startEdit(idx) {
+      const q = questions[idx];
+      editingIndex = idx;
+      formTitle.textContent = `Edit Question #${idx+1}`;
+      qText.value = q.text;
+      choicesDiv.innerHTML = '';
+      q.choices.forEach((c, i) => {
+        choicesDiv.appendChild(createChoiceInput(c, i, i === q.correctIndex));
+      });
+      ensureRadiosIndexed();
+      btnAddQuestion.style.display = 'none';
+      btnUpdateQuestion.style.display = '';
+      btnCancelEdit.style.display = '';
+    }
+
+    function cancelEdit() {
+      editingIndex = -1;
+      formTitle.textContent = 'Add Question';
+      clearQuestionForm();
+      btnAddQuestion.style.display = '';
+      btnUpdateQuestion.style.display = 'none';
+      btnCancelEdit.style.display = 'none';
+    }
+
+    function clearQuestionForm() {
+      qText.value = '';
+      resetChoiceFields();
+    }
+
+    function addQuestionFromForm() {
+      const text = qText.value;
+      const { choices, correctIndex } = collectChoices();
+      const q = { text, choices, correctIndex };
+      const err = validateQuestion(q);
+      if (err) { alert(err); return; }
+      questions.push(q);
+      renderQuestionList();
+      clearQuestionForm();
+    }
+
+    function updateQuestionFromForm() {
+      if (editingIndex < 0 || editingIndex >= questions.length) return;
+      const text = qText.value;
+      const { choices, correctIndex } = collectChoices();
+      const q = { text, choices, correctIndex };
+      const err = validateQuestion(q);
+      if (err) { alert(err); return; }
+      questions[editingIndex] = q;
+      renderQuestionList();
+      cancelEdit();
+    }
+
+    // File generation/parsing for .tuff format
+    function generateTuffText(description, questionsArr) {
+      // First line: description
+      // Second line: total questions (number)
+      // For each question:
+      // header: "<nLines>+<nChoices>"
+      // nLines lines of question text
+      // nChoices lines of choices
+      // final line: correct answer (1-based index)
+      const lines = [];
+      lines.push(description || '');
+      lines.push(String(questionsArr.length));
+      questionsArr.forEach(q => {
+        const qLines = q.text.replace(/\r/g,'').split('\n');
+        const nLines = qLines.length;
+        const nChoices = q.choices.length;
+        lines.push(`${nLines}+${nChoices}`);
+        qLines.forEach(l => lines.push(l));
+        q.choices.forEach(c => lines.push(c));
+        lines.push(String((q.correctIndex || 0) + 1)); // 1-based
+      });
+      return lines.join('\n');
+    }
+
+    function downloadTuff() {
+      const desc = dbDescription.value || 'Untitled database';
+      const content = generateTuffText(desc, questions);
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const filenameSafe = (desc.replace(/[^\w\-]/g,'_') || 'db') + '.tuff';
+      a.href = url;
+      a.download = filenameSafe;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function parseTuffText(name, raw) {
+      // Similar parser as the app expects
+      const lines = raw.replace(/\r/g,'').split('\n');
+      let i = 0;
+      const description = (lines[i++] ?? '');
+      const totalLine = (lines[i++] || '').trim();
+      const total = parseInt(totalLine, 10) || 0;
+      const outQuestions = [];
+      for (let q = 0; q < total && i < lines.length; q++) {
+        while (i < lines.length && lines[i].trim() === '') i++;
+        const header = (lines[i++] || '').trim();
+        const m = header.match(/^(\d+)\+(\d+)$/);
+        if (!m) {
+          console.warn('Malformed header during parse:', header);
+          break;
+        }
+        const nLines = parseInt(m[1],10);
+        const nChoices = parseInt(m[2],10);
+        const qLines = [];
+        for (let li = 0; li < nLines && i < lines.length; li++) {
+          qLines.push(lines[i++] ?? '');
+        }
+        const choices = [];
+        for (let ci = 0; ci < nChoices && i < lines.length; ci++) {
+          choices.push(lines[i++] ?? '');
+        }
+        // correct index line
+        let correctRaw = (lines[i++] || '').trim();
+        while (correctRaw === '' && i < lines.length) {
+          correctRaw = (lines[i++] || '').trim();
+        }
+        const correct = parseInt(correctRaw,10);
+        const correctIndex = isNaN(correct) ? 0 : Math.max(0, correct - 1);
+        outQuestions.push({
+          text: qLines.join('\n'),
+          choices,
+          correctIndex
+        });
+      }
+      return { name, description, questions: outQuestions };
+    }
+
+    // Event bindings
+    btnAddChoice.addEventListener('click', () => {
+      choicesDiv.appendChild(createChoiceInput('', null, false));
+      ensureRadiosIndexed();
+    });
+
+    btnResetChoices.addEventListener('click', () => {
+      if (!confirm('Reset choices to two empty choices?')) return;
+      resetChoiceFields();
+    });
+
+    btnAddQuestion.addEventListener('click', addQuestionFromForm);
+    btnUpdateQuestion.addEventListener('click', updateQuestionFromForm);
+    btnCancelEdit.addEventListener('click', cancelEdit);
+
+    btnDownload.addEventListener('click', () => {
+      if (!questions.length) {
+        if (!confirm('No questions added. Download empty .tuff anyway?')) return;
+      }
+      downloadTuff();
+    });
+
+    btnClear.addEventListener('click', () => {
+      if (!confirm('Clear description and all questions?')) return;
+      dbDescription.value = '';
+      questions = [];
+      renderQuestionList();
+      cancelEdit();
+    });
+
+    btnLoad.addEventListener('click', () => {
+      const f = fileLoad.files[0];
+      if (!f) {
+        alert('Choose a .tuff file first (use the file picker).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = parseTuffText(f.name, reader.result);
+          dbDescription.value = parsed.description || f.name.replace(/\.tuff$/i,'');
+          questions = parsed.questions || [];
+          renderQuestionList();
+          cancelEdit();
+          alert(`Loaded ${questions.length} questions from ${f.name}`);
+        } catch (err) {
+          console.error(err);
+          alert('Failed to parse .tuff file. See console for details.');
+        }
+      };
+      reader.readAsText(f);
+    });
+
+    // Utility
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+
+    // initialize
+    resetChoiceFields();
+    renderQuestionList();
+
+    // keyboard: Enter to add question (if focus not in textarea)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement && document.activeElement.tagName !== 'TEXTAREA') {
+        if (editingIndex >= 0) updateQuestionFromForm();
+        else addQuestionFromForm();
+      }
+    });
+  </script>
+</body>
+</html>
