@@ -1,14 +1,12 @@
 Extreme SAT Math Question Database
 50
-
 1+4
-If (x+\frac{1}{x}=5) and (x>0), find (x^2+\frac{1}{x^2}).
+If (x+rac{1}{x}=5) and (x>0), find (x^2+rac{1}{x^2}).
 23
 21
 19
 27
 0
-
 1+4
 The sum of the first (n) positive integers is 465. What is (n)?
 29
@@ -16,7 +14,6 @@ The sum of the first (n) positive integers is 465. What is (n)?
 31
 28
 1
-
 1+4
 If (2^{a}=8^{b}=32^{c}) and (a,b,c>0), what is (a:b:c)?
 3:2:1
@@ -24,15 +21,13 @@ If (2^{a}=8^{b}=32^{c}) and (a,b,c>0), what is (a:b:c)?
 5:3:2
 1:1:1
 0
-
 1+4
-A quadratic equation has roots (3+\sqrt{5}) and (3-\sqrt{5}). What is the equation?
+A quadratic equation has roots (3+sqrt{5}) and (3-sqrt{5}). What is the equation?
 (x^2-6x+4=0)
 (x^2-6x+14=0)
 (x^2-6x-4=0)
 (x^2+6x+4=0)
 1
-
 1+4
 How many integers (x) satisfy (|2x-5|<9)?
 7
@@ -40,7 +35,6 @@ How many integers (x) satisfy (|2x-5|<9)?
 9
 10
 2
-
 1+4
 If (f(x)=x^2-4x+7), what is the minimum value of (f(x))?
 1
@@ -48,7 +42,6 @@ If (f(x)=x^2-4x+7), what is the minimum value of (f(x))?
 5
 7
 1
-
 1+4
 A right triangle has legs of length 9 and 12. What is the radius of its inscribed circle?
 2
@@ -56,15 +49,13 @@ A right triangle has legs of length 9 and 12. What is the radius of its inscribe
 4
 5
 1
-
 1+4
-If (\log_2(x)+\log_2(x-2)=3), find (x).
+If (log_2(x)+log_2(x-2)=3), find (x).
 4
 5
 6
 8
 2
-
 1+4
 How many distinct positive divisors does (360) have?
 18
@@ -72,7 +63,6 @@ How many distinct positive divisors does (360) have?
 24
 30
 2
-
 1+4
 If the arithmetic mean of 5 numbers is 18, and four of the numbers are 10, 12, 20, and 30, what is the fifth number?
 18
@@ -80,7 +70,6 @@ If the arithmetic mean of 5 numbers is 18, and four of the numbers are 10, 12, 2
 22
 28
 2
-
 1+4
 For what value of (k) does the system have infinitely many solutions?
 (2x+3y=6)
@@ -90,7 +79,6 @@ For what value of (k) does the system have infinitely many solutions?
 1.5
 9
 0
-
 1+4
 If (x^3-y^3=(x-y)(x^2+xy+y^2)=91) and (x-y=7), find (x+y).
 7
@@ -98,23 +86,20 @@ If (x^3-y^3=(x-y)(x^2+xy+y^2)=91) and (x-y=7), find (x+y).
 11
 13
 1
-
 1+4
-A circle has area (36\pi). What is the length of a chord that is 3 units from the center?
+A circle has area (36pi). What is the length of a chord that is 3 units from the center?
 6
-(6\sqrt{3})
+(6sqrt{3})
 (12)
-(12\sqrt{3})
+(12sqrt{3})
 1
-
 1+4
-If (\frac{a}{b}=\frac{3}{4}) and (\frac{b}{c}=\frac{5}{6}), what is (\frac{a}{c})?
-(\frac{5}{8})
-(\frac{9}{10})
-(\frac{15}{24})
-(\frac{5}{6})
+If (rac{a}{b}=rac{3}{4}) and (rac{b}{c}=rac{5}{6}), what is (rac{a}{c})?
+(rac{5}{8})
+(rac{9}{10})
+(rac{15}{24})
+(rac{5}{6})
 0
-
 1+4
 How many solutions does (x^2-6x+9=0) have?
 0
@@ -122,15 +107,13 @@ How many solutions does (x^2-6x+9=0) have?
 2
 Infinitely many
 1
-
 1+4
 If the perimeter of a square equals the circumference of a circle of radius 7, what is the area of the square?
-(49\pi^2)
-(196\pi)
+(49pi^2)
+(196pi)
 (196)
-(49\pi)
+(49pi)
 1
-
 1+4
 What is the sum of the solutions to (x^2+4x-13=0)?
 -4
@@ -138,15 +121,13 @@ What is the sum of the solutions to (x^2+4x-13=0)?
 13
 -13
 0
-
 1+4
-If (\sin\theta=\frac{5}{13}) and (\theta) is acute, find (\cos\theta).
-(\frac{12}{13})
-(\frac{5}{12})
-(\frac{13}{12})
-(\frac{8}{13})
+If (sin heta=rac{5}{13}) and ( heta) is acute, find (cos heta).
+(rac{12}{13})
+(rac{5}{12})
+(rac{13}{12})
+(rac{8}{13})
 0
-
 1+4
 A sequence has (a_1=2) and (a_{n+1}=3a_n). What is (a_5)?
 162
@@ -154,7 +135,6 @@ A sequence has (a_1=2) and (a_{n+1}=3a_n). What is (a_5)?
 486
 81
 3
-
 1+4
 How many ways can 4 people be seated in a row if two specific people must sit together?
 12
@@ -162,7 +142,6 @@ How many ways can 4 people be seated in a row if two specific people must sit to
 24
 48
 2
-
 1+4
 If (x) is an integer and (x^2<50), how many possible values of (x) are there?
 13
@@ -170,15 +149,13 @@ If (x) is an integer and (x^2<50), how many possible values of (x) are there?
 15
 16
 2
-
 1+4
 The slope of a line perpendicular to (3x-4y=7) is
-(\frac{3}{4})
-(-\frac{3}{4})
-(\frac{4}{3})
-(-\frac{4}{3})
+(rac{3}{4})
+(-rac{3}{4})
+(rac{4}{3})
+(-rac{4}{3})
 2
-
 1+4
 If (2x+5y=1) and (4x+10y=3), the system has
 one solution
@@ -186,15 +163,13 @@ two solutions
 no solution
 infinitely many solutions
 2
-
 1+4
-A cylinder has radius 3 and volume (54\pi). What is its height?
+A cylinder has radius 3 and volume (54pi). What is its height?
 3
 6
 9
 12
 1
-
 1+4
 If ((x-2)(x+3)=0), what is the product of the solutions?
 -6
@@ -202,7 +177,6 @@ If ((x-2)(x+3)=0), what is the product of the solutions?
 -1
 6
 0
-
 1+4
 What is the greatest common divisor of 252 and 198?
 18
@@ -210,7 +184,6 @@ What is the greatest common divisor of 252 and 198?
 54
 72
 1
-
 1+4
 If the probability of rain on any given day is 0.3, what is the probability it does not rain for two consecutive days?
 0.09
@@ -218,15 +191,13 @@ If the probability of rain on any given day is 0.3, what is the probability it d
 0.49
 0.81
 3
-
 1+4
-If (x=\sqrt{7}+\sqrt{3}), find (x^2).
+If (x=sqrt{7}+sqrt{3}), find (x^2).
 10
 13
 14
 16
 1
-
 1+4
 A triangle has sides 5, 12, and (x). How many integer values of (x) are possible?
 6
@@ -234,7 +205,6 @@ A triangle has sides 5, 12, and (x). How many integer values of (x) are possible
 8
 9
 2
-
 1+4
 The sum of interior angles of a polygon is 1440°. How many sides does it have?
 8
@@ -242,7 +212,6 @@ The sum of interior angles of a polygon is 1440°. How many sides does it have?
 10
 12
 2
-
 1+4
 If (3^{x}=81), what is (x)?
 3
@@ -250,7 +219,6 @@ If (3^{x}=81), what is (x)?
 5
 6
 1
-
 1+4
 What is the remainder when (7^{100}) is divided by 6?
 0
@@ -258,7 +226,6 @@ What is the remainder when (7^{100}) is divided by 6?
 3
 5
 1
-
 1+4
 A line passes through (2,5) and has slope -3. What is its y-intercept?
 11
@@ -266,7 +233,6 @@ A line passes through (2,5) and has slope -3. What is its y-intercept?
 -11
 1
 0
-
 1+4
 If the mean of 6 numbers is 10, and one number is removed, the mean becomes 9. What number was removed?
 12
@@ -274,7 +240,6 @@ If the mean of 6 numbers is 10, and one number is removed, the mean becomes 9. W
 16
 18
 2
-
 1+4
 How many zeros are at the end of (25!)?
 4
@@ -282,7 +247,6 @@ How many zeros are at the end of (25!)?
 6
 7
 1
-
 1+4
 If (x:y=4:7) and (y:z=14:5), what is (x:z)?
 2:5
@@ -290,15 +254,13 @@ If (x:y=4:7) and (y:z=14:5), what is (x:z)?
 8:5
 16:5
 2
-
 1+4
-What is the value of (\sqrt{50}-\sqrt{18})?
-(\sqrt{32})
-(2\sqrt{2})
-(2\sqrt{8})
-(4\sqrt{2})
+What is the value of (sqrt{50}-sqrt{18})?
+(sqrt{32})
+(2sqrt{2})
+(2sqrt{8})
+(4sqrt{2})
 1
-
 1+4
 If (x) varies inversely with (y), and (x=4) when (y=6), find (x) when (y=3).
 2
@@ -306,15 +268,13 @@ If (x) varies inversely with (y), and (x=4) when (y=6), find (x) when (y=3).
 6
 8
 3
-
 1+4
 A fair die is rolled twice. What is the probability the sum is 9?
-(\frac{1}{6})
-(\frac{1}{9})
-(\frac{1}{12})
-(\frac{1}{18})
+(rac{1}{6})
+(rac{1}{9})
+(rac{1}{12})
+(rac{1}{18})
 2
-
 1+4
 If (f(x)=2x+1), what is (f(f(3)))?
 13
@@ -322,15 +282,13 @@ If (f(x)=2x+1), what is (f(f(3)))?
 17
 19
 0
-
 1+4
 What is the solution to (4^{x}=8)?
-(\frac{1}{2})
-(\frac{3}{2})
-(\frac{1}{3})
+(rac{1}{2})
+(rac{3}{2})
+(rac{1}{3})
 2
 0
-
 1+4
 The radius of a sphere doubles. Its volume increases by a factor of
 2
@@ -338,23 +296,20 @@ The radius of a sphere doubles. Its volume increases by a factor of
 6
 8
 3
-
 1+4
 If (x^2+y^2=25) and (y=4), what is (x)?
 ±3
 ±5
-±(\sqrt{21})
+±(sqrt{21})
 ±4
 0
-
 1+4
-How many solutions does (\sin x = \frac{1}{2}) have in (0\le x<2\pi)?
+How many solutions does (sin x = rac{1}{2}) have in (0le x<2pi)?
 1
 2
 3
 4
 1
-
 1+4
 What is the least common multiple of 18 and 24?
 36
