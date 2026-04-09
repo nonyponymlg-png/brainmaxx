@@ -1,0 +1,180 @@
+/* Dark Theme for BrainMaxx */
+body {
+  margin: 0;
+/* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#45484d+0,000000+26,000000+40;Black+3D+%231 */
+background: linear-gradient(to bottom,  #45484d 0%,#000000 26%,#000000 40%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+
+  font-family: Arial, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: #e0e0e0;
+}
+
+.parent-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.menu {
+  display: none;
+  width: 720px;
+  max-width: 100%;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#959595+0,0d0d0d+46,010101+50,0a0a0a+53,4e4e4e+73,383838+87,1b1b1b+100;Black+Gloss+Pipe */
+background: linear-gradient(45deg,  #959595 0%,#0d0d0d 46%,#010101 50%,#0a0a0a 53%,#4e4e4e 73%,#383838 87%,#1b1b1b 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+
+  padding: 16px;
+  border-radius: 10px;
+  border: 2px solid #444;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+  color: #e0e0e0;
+}
+
+.menu.visible { display: block; }
+
+/* Button styles */
+button {
+  background-color: #404040;
+  border: none;
+  color: #e0e0e0;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 10px;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.12s;
+  border: 2px solid #555;
+  cursor: pointer;
+}
+
+button:hover { 
+  background-color: #555; 
+  color: #fff;
+  border-color: #777;
+}
+
+button:active { 
+  background-color: #6a5acd; 
+  border: 2px solid #7b68ee; 
+  color: white; 
+}
+
+.thinb { 
+  padding: 6px 8px; 
+  background: linear-gradient(to bottom, #3a3a3a, #404040); 
+  border-radius:8px; 
+}
+
+.thinb:hover { 
+  text-shadow: 0px 0px 2px #fff; 
+  background: linear-gradient(to bottom, #454545, #505050);
+}
+
+.quit { 
+  background-color: #8b3a3a; 
+  border: 2px solid #c44444; 
+}
+
+.quit:hover { 
+  background-color: #c44444; 
+  color: white; 
+}
+
+/* App-specific layout tweaks */
+body > h1 { 
+  margin: 16px 0; 
+  text-align: center; 
+  color: #e0e0e0;
+}
+
+h2, h3 {
+  color: #e0e0e0;
+}
+
+.scroll-question { 
+  max-height: 200px; 
+  overflow:auto; 
+  border:1px solid #444; 
+  padding:8px; 
+  white-space:pre-wrap; 
+  background: #1e1e1e; 
+  border-radius:6px;
+  color: #e0e0e0;
+}
+
+.choices { 
+  margin-top:10px; 
+  display:flex; 
+  flex-direction:column; 
+  gap:8px; 
+}
+
+.db-list { 
+  margin-top:10px; 
+  display:flex; 
+  flex-direction:column; 
+  gap:8px; 
+  max-height:300px; 
+  overflow:auto; 
+}
+
+.stats-line { 
+  margin:6px 0;
+  color: #e0e0e0;
+}
+
+.small { 
+  font-size:0.9rem; 
+  color:#aaa; 
+}
+
+.center { 
+  text-align:center; 
+}
+
+p {
+  color: #e0e0e0;
+}
+
+input[type="search"],
+input[type="text"] {
+  background: #3a3a3a;
+  border: 1px solid #555;
+  color: #e0e0e0;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+input[type="search"]::placeholder {
+  color: #888;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Responsive */
+@media (max-width:720px) {
+  .menu { padding:12px; }
+  button { font-size:14px; }
+}
