@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>BrainMaxx — Study App</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
+  <style id="theme-style">
     /* Combined styling: visual design from second file, app-specific tweaks from first file */
     body {
       margin: 0;
@@ -85,6 +85,8 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         <button id="btn-go-db" class="thinb">Choose Database</button>
         <button id="btn-sample" class="thinb">Load Sample DB</button>
+        <button id="btn-upload-theme" class="thinb">🎨 Upload Theme</button>
+        <input id="theme-file-picker" type="file" accept=".css" style="display:none" />
       </div>
     </div>
 
@@ -173,6 +175,10 @@
     const statsContent = document.getElementById('stats-content');
     const btnStatsBack = document.getElementById('btn-stats-back');
     const btnStatsMain = document.getElementById('btn-stats-main');
+
+    const themeStyle = document.getElementById('theme-style');
+    const btnUploadTheme = document.getElementById('btn-upload-theme');
+    const themeFilePicker = document.getElementById('theme-file-picker');
 
     function showMenu(menuEl) {
       [menuMain, menuDb, menuQuestion, menuAnswered, menuStats].forEach(m => m.classList.remove('visible'));
@@ -325,6 +331,22 @@
       showMenu(menuStats);
     }
 
+    // Theme upload handler
+    btnUploadTheme.addEventListener('click', () => themeFilePicker.click());
+    themeFilePicker.addEventListener('change', async (ev) => {
+      const file = ev.target.files?.[0];
+      if (!file) return;
+      try {
+        const cssText = await file.text();
+        themeStyle.textContent = cssText;
+        alert('Theme loaded successfully!');
+      } catch (err) {
+        console.error('Failed to load theme:', err);
+        alert('Failed to load theme. Check the console for details.');
+      }
+      themeFilePicker.value = '';
+    });
+
     // Event bindings
     btnGoDb.addEventListener('click', () => { renderDbList(); showMenu(menuDb); });
     btnBackToMain.addEventListener('click', () => showMenu(menuMain));
@@ -385,7 +407,6 @@ Line three of question.
 Choice A
 Choice B
 Choice C
-3
 `;
       const parsed = parseTuff('Sample Geography', sample);
       parsed.raw = sample;
@@ -400,4 +421,3 @@ Choice C
   </script>
 </body>
 </html>
-
