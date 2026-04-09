@@ -1,93 +1,147 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
+<html lang="en"><head>
+  <meta charset="utf-8">
   <title>BrainMaxx — Study App</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    /* Minimal/no styling per request */
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:16px; }
-    .menu { display:none; }
-    .visible { display:block; }
-    .scroll-question { max-height:200px; overflow:auto; border:1px solid #ddd; padding:8px; white-space:pre-wrap; }
-    .choices { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
-    button { padding:8px 12px; cursor:pointer; }
-    .db-list { margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:300px; overflow:auto; }
+    /* Combined styling: visual design from second file, app-specific tweaks from first file */
+    body {
+      margin: 0;
+      background: lightblue;
+      font-family: "Courier New", Courier, monospace;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .parent-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    .menu {
+      display: none; /* hidden by default; .visible will show the active one */
+      width: 720px;
+      max-width: 100%;
+      background: beige;
+      padding: 16px;
+      border-radius: 10px;
+      border: 2px solid #AC9362;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      box-sizing: border-box;
+    }
+    .menu.visible { display: block; }
+
+    /* Button styles from second file */
+    button {
+      background-color: lightgreen;
+      border: none;
+      color: black;
+      padding: 8px 12px;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 10px;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      transition-duration: 0.12s;
+      border: 2px solid #04AA6D;
+      cursor: pointer;
+    }
+    button:hover { background-color: #04AA6D; color: white; }
+    button:active { background-color: blue; border: 2px solid lightblue; color: white; }
+
+    .thinb { padding: 6px 8px; background: linear-gradient(to bottom, white, lightgreen); border-radius:8px; }
+    .thinb:hover { text-shadow: 0px 0px 2px black; }
+
+    .quit { background-color: LightCoral; border: 2px solid red; }
+    .quit:hover { background-color: red; color: white; }
+
+    /* App-specific layout tweaks from original file */
+    body > h1 { margin: 16px 0; text-align: center; }
+    .scroll-question { max-height: 200px; overflow:auto; border:1px solid #ddd; padding:8px; white-space:pre-wrap; background: #fff; border-radius:6px; }
+    .choices { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+    .db-list { margin-top:10px; display:flex; flex-direction:column; gap:8px; max-height:300px; overflow:auto; }
     .stats-line { margin:6px 0; }
     .small { font-size:0.9rem; color:#444; }
     .center { text-align:center; }
+
+    /* Responsive */
+    @media (max-width:720px) {
+      .menu { padding:12px; }
+      button { font-size:14px; }
+    }
   </style>
 </head>
 <body>
-  <h1>BrainMaxx</h1>
-
-  <!-- Main Menu -->
-  <div id="menu-main" class="menu visible">
-    <p>Welcome to BrainMaxx — a simple study app.</p>
-    <button id="btn-go-db">Choose Database</button>
-  </div>
-
-  <!-- Database Search Menu -->
-  <div id="menu-db-search" class="menu">
-    <h2>Databases</h2>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input id="db-search-input" type="search" placeholder="Filter databases by name" />
-      <button id="btn-db-search">Search</button>
-      <input id="file-picker" type="file" accept=".tuff" style="display:none" multiple />
-      <button id="btn-upload">Upload .tuff (add to list)</button>
+  <div class="parent-container">
+    <!-- We'll render only one .menu at a time via .visible -->
+    <div id="menu-main" class="menu visible">
+      <h1>BrainMaxx</h1>
+      <p>Welcome to BrainMaxx — a simple study app.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="btn-go-db" class="thinb">Choose Database</button>
+        <button id="btn-sample" class="thinb">Load Sample DB</button>
+      </div>
     </div>
-    <div id="db-list" class="db-list" aria-live="polite"></div>
-    <div style="margin-top:10px;">
-      <button id="btn-back-to-main">Back</button>
-    </div>
-    <p class="small">Tip: Upload .tuff files to add them to the list. Click a database button to start a session.</p>
-  </div>
 
-  <!-- Question Template Menu -->
-  <div id="menu-question" class="menu">
-    <h2 id="db-title">Study Session</h2>
-    <div id="question-scroll" class="scroll-question"></div>
-    <div id="choices" class="choices"></div>
-    <div style="margin-top:12px; display:flex; gap:8px;">
-      <button id="btn-quit">Exit Session</button>
-      <button id="btn-check" disabled>Check Answer</button>
+    <div id="menu-db-search" class="menu">
+      <h2>Databases</h2>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="db-search-input" type="search" placeholder="Filter databases by name">
+        <button id="btn-db-search" class="thinb">Search</button>
+        <input id="file-picker" type="file" accept=".tuff" style="display:none" multiple="">
+        <button id="btn-upload" class="thinb">Upload .tuff (add to list)</button>
+      </div>
+      <div id="db-list" class="db-list" aria-live="polite"><div><button>Start: Sample Geography (2 Q)</button><button style="margin-left: 8px;">View Raw</button></div></div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button id="btn-back-to-main" class="thinb">Back</button>
+      </div>
+      <p class="small">Tip: Upload .tuff files to add them to the list. Click a database button to start a session.</p>
     </div>
-    <div style="margin-top:8px;">
-      <span class="small">Progress: <span id="progress-current">0</span>/<span id="progress-total">0</span></span>
-    </div>
-  </div>
 
-  <!-- Answered Question Menu -->
-  <div id="menu-answered" class="menu">
-    <h3 id="answered-result" class="center"></h3>
-    <p id="answered-correct" class="center small"></p>
-    <div class="center" style="margin-top:12px;">
-      <button id="btn-continue">Continue</button>
+    <div id="menu-question" class="menu">
+      <h2 id="db-title">Study Session</h2>
+      <div id="question-scroll" class="scroll-question"></div>
+      <div id="choices" class="choices"></div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btn-quit" class="quit">Exit Session</button>
+        <button id="btn-check" disabled="">Check Answer</button>
+      </div>
+      <div style="margin-top:8px;">
+        <span class="small">Progress: <span id="progress-current">0</span>/<span id="progress-total">0</span></span>
+      </div>
     </div>
-  </div>
 
-  <!-- Statistics Template Menu -->
-  <div id="menu-stats" class="menu">
-    <h2>Session Statistics</h2>
-    <div id="stats-content"></div>
-    <div style="margin-top:12px;">
-      <button id="btn-stats-back">Back to Databases</button>
-      <button id="btn-stats-main">Main Menu</button>
+    <div id="menu-answered" class="menu">
+      <h3 id="answered-result" class="center"></h3>
+      <p id="answered-correct" class="center small"></p>
+      <div class="center" style="margin-top:12px;">
+        <button id="btn-continue" class="thinb">Continue</button>
+      </div>
+    </div>
+
+    <div id="menu-stats" class="menu">
+      <h2>Session Statistics</h2>
+      <div id="stats-content"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="btn-stats-back" class="thinb">Back to Databases</button>
+        <button id="btn-stats-main" class="thinb">Main Menu</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Simple study app logic for .tuff format
-    // Data structures
+    // Study app logic (from original app)
     const databases = []; // { name, raw, questions: [{text, choices, correctIndex}] }
-    let currentDB = null; // reference to databases[i]
-    let tempOrder = []; // indexes of unanswered questions (shuffled)
-    let stats = []; // { questionIndex, timeMs, correct }
+    let currentDB = null;
+    let tempOrder = [];
+    let stats = [];
     let questionStartTime = 0;
-    let currentQuestionIndex = null; // index in DB.questions currently shown
+    let currentQuestionIndex = null;
     let selectedChoice = null;
 
-    // DOM refs
     const menuMain = document.getElementById('menu-main');
     const menuDb = document.getElementById('menu-db-search');
     const menuQuestion = document.getElementById('menu-question');
@@ -118,10 +172,12 @@
     const btnStatsBack = document.getElementById('btn-stats-back');
     const btnStatsMain = document.getElementById('btn-stats-main');
 
-    // Helpers
     function showMenu(menuEl) {
       [menuMain, menuDb, menuQuestion, menuAnswered, menuStats].forEach(m => m.classList.remove('visible'));
       menuEl.classList.add('visible');
+      // small accessibility: focus first button if present
+      const firstBtn = menuEl.querySelector('button');
+      if (firstBtn) firstBtn.focus();
     }
 
     function shuffle(array) {
@@ -133,14 +189,6 @@
     }
 
     function parseTuff(name, raw) {
-      // Parse according to spec
-      // 1: description line (ignored)
-      // 2: number of questions
-      // Then each question:
-      //   header: "<nLines>+<nChoices>"
-      //   nLines lines of question text
-      //   nChoices lines of choices
-      //   final line: correct answer index (1-based)
       const lines = raw.replace(/\r/g,'').split('\n');
       let i = 0;
       const description = lines[i++] ?? '';
@@ -149,38 +197,21 @@
       const questions = [];
 
       for (let q = 0; q < total && i < lines.length; q++) {
-        // skip empty lines until a header is found
         while (i < lines.length && lines[i].trim() === '') i++;
         const header = (lines[i++] || '').trim();
         const m = header.match(/^(\d+)\+(\d+)$/);
-        if (!m) {
-          // malformed - attempt to recover by breaking
-          console.warn('Malformed question header at question', q+1, header);
-          break;
-        }
+        if (!m) { console.warn('Malformed question header at question', q+1, header); break; }
         const nLines = parseInt(m[1], 10);
         const nChoices = parseInt(m[2], 10);
         const qLines = [];
-        for (let li = 0; li < nLines && i < lines.length; li++) {
-          qLines.push(lines[i++] ?? '');
-        }
+        for (let li = 0; li < nLines && i < lines.length; li++) qLines.push(lines[i++] ?? '');
         const choices = [];
-        for (let ci = 0; ci < nChoices && i < lines.length; ci++) {
-          choices.push(lines[i++] ?? '');
-        }
-        // correct answer line
+        for (let ci = 0; ci < nChoices && i < lines.length; ci++) choices.push(lines[i++] ?? '');
         let correctRaw = (lines[i++] || '').trim();
-        // if blank lines accidentally, skip until non-empty or end
-        while (correctRaw === '' && i < lines.length) {
-          correctRaw = (lines[i++] || '').trim();
-        }
+        while (correctRaw === '' && i < lines.length) correctRaw = (lines[i++] || '').trim();
         const correct = parseInt(correctRaw, 10);
         const correctIndex = isNaN(correct) ? 0 : Math.max(0, correct - 1);
-        questions.push({
-          text: qLines.join('\n'),
-          choices,
-          correctIndex
-        });
+        questions.push({ text: qLines.join('\n'), choices, correctIndex });
       }
 
       return { name, description, questions };
@@ -210,32 +241,22 @@
       }
     }
 
-    // Session lifecycle
     function startSession(dbIndex) {
       currentDB = databases[dbIndex];
-      if (!currentDB || !currentDB.questions.length) {
-        alert('Selected database is empty or invalid.');
-        return;
-      }
-      // prepare tempOrder and stats
+      if (!currentDB || !currentDB.questions.length) { alert('Selected database is empty or invalid.'); return; }
       tempOrder = currentDB.questions.map((_, i) => i);
       shuffle(tempOrder);
       stats = [];
-      dbTitle.textContent = `Study: ${currentDB.name}`;
+      dbTitle.innerHTML = `Study: ${currentDB.name}`;
       progressTotal.textContent = currentDB.questions.length;
       showNextQuestion();
       showMenu(menuQuestion);
     }
 
     function showNextQuestion() {
-      // refill when empty
-      if (tempOrder.length === 0) {
-        tempOrder = currentDB.questions.map((_, i) => i);
-        shuffle(tempOrder);
-      }
+      if (tempOrder.length === 0) { tempOrder = currentDB.questions.map((_, i) => i); shuffle(tempOrder); }
       currentQuestionIndex = tempOrder.shift();
       const q = currentDB.questions[currentQuestionIndex];
-      // render
       questionScroll.textContent = q.text;
       choicesDiv.innerHTML = '';
       selectedChoice = null;
@@ -246,17 +267,14 @@
         b.dataset.index = idx;
         b.addEventListener('click', () => {
           selectedChoice = idx;
-          // visual selection
           Array.from(choicesDiv.children).forEach(ch => ch.style.outline = '');
-          b.style.outline = '2px solid #000';
+          b.style.outline = '3px solid rgba(0,0,0,0.7)';
           btnCheck.disabled = false;
         });
         choicesDiv.appendChild(b);
       });
-      // progress (how many answered so far + 1?) We'll show number of distinct questions in current cycle:
       const answeredCount = stats.length;
       progressCurrent.textContent = answeredCount + 1;
-      // start timer
       questionStartTime = performance.now();
     }
 
@@ -272,7 +290,6 @@
     }
 
     function endSession() {
-      // compute stats and show
       const total = stats.length || 0;
       const correctCount = stats.filter(s => s.correct).length;
       const averageMs = total ? (stats.reduce((a,b) => a + b.timeMs, 0) / total) : 0;
@@ -291,7 +308,6 @@
         statsContent.appendChild(div);
       });
 
-      // optionally show per-question summary
       const perQ = document.createElement('details');
       perQ.innerHTML = `<summary>Per-question details (${stats.length})</summary>`;
       const list = document.createElement('ol');
@@ -308,10 +324,7 @@
     }
 
     // Event bindings
-    btnGoDb.addEventListener('click', () => {
-      renderDbList();
-      showMenu(menuDb);
-    });
+    btnGoDb.addEventListener('click', () => { renderDbList(); showMenu(menuDb); });
     btnBackToMain.addEventListener('click', () => showMenu(menuMain));
     btnDbSearch.addEventListener('click', () => renderDbList(dbSearchInput.value));
     btnUpload.addEventListener('click', () => filePicker.click());
@@ -324,43 +337,22 @@
           parsed.raw = text;
           parsed.name = f.name.replace(/\.tuff$/i,'') || f.name;
           databases.push(parsed);
-        } catch (err) {
-          console.error('Failed to read file', f.name, err);
-        }
+        } catch (err) { console.error('Failed to read file', f.name, err); }
       }
       filePicker.value = '';
       renderDbList(dbSearchInput.value);
     });
 
-    btnQuit.addEventListener('click', () => {
-      if (!confirm('Exit session and view statistics?')) return;
-      endSession();
-    });
-
-    btnCheck.addEventListener('click', () => {
-      checkAnswer();
-    });
-
-    btnContinue.addEventListener('click', () => {
-      showNextQuestion();
-      showMenu(menuQuestion);
-    });
-
-    btnStatsBack.addEventListener('click', () => {
-      renderDbList();
-      showMenu(menuDb);
-    });
+    btnQuit.addEventListener('click', () => { if (!confirm('Exit session and view statistics?')) return; endSession(); });
+    btnCheck.addEventListener('click', () => { checkAnswer(); });
+    btnContinue.addEventListener('click', () => { showNextQuestion(); showMenu(menuQuestion); });
+    btnStatsBack.addEventListener('click', () => { renderDbList(); showMenu(menuDb); });
     btnStatsMain.addEventListener('click', () => showMenu(menuMain));
 
-    // Keyboard shortcuts (optional convenience)
     document.addEventListener('keydown', (e) => {
       if (menuQuestion.classList.contains('visible')) {
-        if (e.key === 'Enter' && !btnCheck.disabled) {
-          checkAnswer();
-        }
-        if (e.key === 'Escape') {
-          btnQuit.click();
-        }
+        if (e.key === 'Enter' && !btnCheck.disabled) checkAnswer();
+        if (e.key === 'Escape') btnQuit.click();
       } else if (menuAnswered.classList.contains('visible') && e.key === 'Enter') {
         btnContinue.click();
       }
@@ -398,8 +390,13 @@ Choice C
       databases.push(parsed);
     })();
 
+    // extra quick-load sample button (keeps original behavior)
+    document.getElementById('btn-sample').addEventListener('click', () => { renderDbList(); showMenu(menuDb); });
+
     // initial render
     renderDbList();
   </script>
-</body>
-</html>
+
+
+
+</body></html>
