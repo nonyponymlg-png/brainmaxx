@@ -1,0 +1,217 @@
+/* Cute Pink Theme for BrainMaxx */
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4f0 100%);
+  font-family: "Courier New", Courier, monospace;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: #6b3a4d;
+}
+
+.parent-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.menu {
+  display: none;
+  width: 720px;
+  max-width: 100%;
+  background: linear-gradient(135deg, #fff9fc 0%, #ffe8f5 100%);
+  padding: 16px;
+  border-radius: 20px;
+  border: 3px solid #ffb3d9;
+  box-shadow: 0 8px 24px rgba(255, 105, 180, 0.2);
+  box-sizing: border-box;
+  color: #6b3a4d;
+}
+
+.menu.visible { display: block; }
+
+h1, h2, h3 {
+  color: #d946a6;
+  text-shadow: 0 2px 4px rgba(255, 105, 180, 0.1);
+}
+
+/* Button styles */
+button {
+  background: linear-gradient(135deg, #ffb3d9 0%, #ff99cc 100%);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 15px;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.12s;
+  border: 2px solid #ff85c0;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(255, 105, 180, 0.2);
+}
+
+button:hover { 
+  background: linear-gradient(135deg, #ff99cc 0%, #ff7fb3 100%);
+  color: #fff;
+  border-color: #ff70b0;
+  box-shadow: 0 6px 12px rgba(255, 105, 180, 0.3);
+  transform: translateY(-2px);
+}
+
+button:active { 
+  background: linear-gradient(135deg, #ff7fb3 0%, #ff669a 100%);
+  border: 2px solid #ff66a0; 
+  color: white;
+  transform: translateY(0);
+}
+
+.thinb { 
+  padding: 6px 8px; 
+  background: linear-gradient(135deg, #ffcceb 0%, #ffb3d9 100%);
+  border-radius:12px;
+  border: 2px solid #ffb3d9;
+  color: #d946a6;
+  font-weight: 600;
+}
+
+.thinb:hover { 
+  text-shadow: 0px 0px 3px rgba(217, 70, 166, 0.5);
+  background: linear-gradient(135deg, #ffb3d9 0%, #ff99cc 100%);
+  color: #fff;
+}
+
+.quit { 
+  background: linear-gradient(135deg, #ff9bbc 0%, #ff7fa0 100%);
+  border: 2px solid #ff6b8a;
+  color: #fff;
+}
+
+.quit:hover { 
+  background: linear-gradient(135deg, #ff7fa0 0%, #ff6b8a 100%);
+  color: white;
+  box-shadow: 0 6px 12px rgba(255, 107, 138, 0.3);
+}
+
+/* App-specific layout tweaks */
+body > h1 { 
+  margin: 16px 0; 
+  text-align: center; 
+  color: #d946a6;
+}
+
+p {
+  color: #8b5a7d;
+}
+
+.scroll-question { 
+  max-height: 200px; 
+  overflow:auto; 
+  border: 2px solid #ffb3d9;
+  padding: 12px; 
+  white-space: pre-wrap; 
+  background: #fffbfe;
+  border-radius: 12px;
+  color: #6b3a4d;
+  box-shadow: inset 0 2px 4px rgba(255, 105, 180, 0.1);
+}
+
+.choices { 
+  margin-top: 10px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+}
+
+.db-list { 
+  margin-top: 10px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+  max-height: 300px; 
+  overflow: auto; 
+}
+
+.stats-line { 
+  margin: 8px 0;
+  color: #6b3a4d;
+  font-weight: 500;
+}
+
+.small { 
+  font-size: 0.9rem; 
+  color: #a17a95; 
+}
+
+.center { 
+  text-align: center; 
+}
+
+input[type="search"],
+input[type="text"] {
+  background: #fffbfe;
+  border: 2px solid #ffb3d9;
+  color: #6b3a4d;
+  padding: 10px;
+  border-radius: 10px;
+  font-family: "Courier New", Courier, monospace;
+}
+
+input[type="search"]::placeholder {
+  color: #d9a5c8;
+}
+
+input[type="search"]:focus,
+input[type="text"]:focus {
+  outline: none;
+  border-color: #ff85c0;
+  box-shadow: 0 0 0 3px rgba(255, 107, 180, 0.2);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ffe8f5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #ffb3d9 0%, #ff99cc 100%);
+  border-radius: 10px;
+  border: 2px solid #ffe8f5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #ff99cc 0%, #ff7fb3 100%);
+}
+
+/* Details/summary styling */
+details summary {
+  color: #d946a6;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: 8px;
+  transition: 0.2s;
+}
+
+details summary:hover {
+  background: rgba(255, 179, 217, 0.3);
+}
+
+/* Responsive */
+@media (max-width:720px) {
+  .menu { 
+    padding: 12px;
+    border-radius: 15px;
+  }
+  button { font-size: 14px; }
+}
