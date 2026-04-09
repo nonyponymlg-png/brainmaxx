@@ -1,7 +1,9 @@
-<html lang="en"><head>
-  <meta charset="utf-8">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
   <title>BrainMaxx — Study App</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* Combined styling: visual design from second file, app-specific tweaks from first file */
     body {
@@ -89,12 +91,12 @@
     <div id="menu-db-search" class="menu">
       <h2>Databases</h2>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input id="db-search-input" type="search" placeholder="Filter databases by name">
+        <input id="db-search-input" type="search" placeholder="Filter databases by name" />
         <button id="btn-db-search" class="thinb">Search</button>
-        <input id="file-picker" type="file" accept=".tuff" style="display:none" multiple="">
+        <input id="file-picker" type="file" accept=".tuff" style="display:none" multiple />
         <button id="btn-upload" class="thinb">Upload .tuff (add to list)</button>
       </div>
-      <div id="db-list" class="db-list" aria-live="polite"><div><button>Start: Sample Geography (2 Q)</button><button style="margin-left: 8px;">View Raw</button></div></div>
+      <div id="db-list" class="db-list" aria-live="polite"></div>
       <div style="margin-top:10px;display:flex;gap:8px;">
         <button id="btn-back-to-main" class="thinb">Back</button>
       </div>
@@ -107,7 +109,7 @@
       <div id="choices" class="choices"></div>
       <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <button id="btn-quit" class="quit">Exit Session</button>
-        <button id="btn-check" disabled="">Check Answer</button>
+        <button id="btn-check" disabled>Check Answer</button>
       </div>
       <div style="margin-top:8px;">
         <span class="small">Progress: <span id="progress-current">0</span>/<span id="progress-total">0</span></span>
@@ -396,7 +398,6 @@ Choice C
     // initial render
     renderDbList();
   </script>
+</body>
+</html>
 
-
-
-</body></html>
