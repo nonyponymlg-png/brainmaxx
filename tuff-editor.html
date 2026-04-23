@@ -29,10 +29,12 @@
     <div class="row">
       <input id="file-load" type="file" accept=".tuff" />
       <button id="btn-load">Load .tuff</button>
+      <input id="file-load-json" type="file" accept=".json" style="display:none;" />
+      <button id="btn-load-json">Load JSON</button>
       <button id="btn-clear">Clear</button>
       <button id="btn-download" style="margin-left:auto;">Download .tuff</button>
     </div>
-    <p class="muted">Load a .tuff from your computer to edit it, add/remove questions, then download the updated file.</p>
+    <p class="muted">Load a .tuff or .json from your computer to edit it, add/remove questions, then download the updated file.</p>
   </section>
 
   <hr/>
@@ -74,6 +76,8 @@
     const dbDescription = document.getElementById('db-description');
     const fileLoad = document.getElementById('file-load');
     const btnLoad = document.getElementById('btn-load');
+    const fileLoadJson = document.getElementById('file-load-json');
+    const btnLoadJson = document.getElementById('btn-load-json');
     const btnClear = document.getElementById('btn-clear');
     const btnDownload = document.getElementById('btn-download');
 
@@ -313,6 +317,48 @@
       return { name, description, questions: outQuestions };
     }
 
+    // JSON parsing
+    function parseJsonText(name, raw) {
+      try {
+        const data = JSON.parse(raw);
+        
+        // Validate JSON structure
+        if (!data || typeof data !== 'object') {
+          throw new Error('JSON must be an object');
+        }
+        
+        const description = data.description || name.replace(/\.json$/i,'');
+        const questionsData = data.questions || [];
+        
+        if (!Array.isArray(questionsData)) {
+          throw new Error('Questions must be an array');
+        }
+        
+        const outQuestions = questionsData.map((q, idx) => {
+          // Validate each question
+          if (!q.text || typeof q.text !== 'string') {
+            throw new Error(`Question ${idx + 1}: text field is required and must be a string`);
+          }
+          if (!Array.isArray(q.choices) || q.choices.length < 2) {
+            throw new Error(`Question ${idx + 1}: choices must be an array with at least 2 items`);
+          }
+          if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.choices.length) {
+            throw new Error(`Question ${idx + 1}: correctIndex must be a valid index (0-${q.choices.length - 1})`);
+          }
+          
+          return {
+            text: q.text,
+            choices: q.choices,
+            correctIndex: q.correctIndex
+          };
+        });
+        
+        return { name, description, questions: outQuestions };
+      } catch (err) {
+        throw new Error('JSON Parse Error: ' + err.message);
+      }
+    }
+
     // Event bindings
     btnAddChoice.addEventListener('click', () => {
       choicesDiv.appendChild(createChoiceInput('', null, false));
@@ -361,6 +407,36 @@
         } catch (err) {
           console.error(err);
           alert('Failed to parse .tuff file. See console for details.');
+        }
+      };
+      reader.readAsText(f);
+    });
+
+    btnLoadJson.addEventListener('click', () => {
+      fileLoadJson.click();
+    });
+
+    fileLoadJson.addEventListener('change', () => {
+      const f = fileLoadJson.files[0];
+      if (!f) {
+        alert('Choose a .json file first (use the file picker).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = parseJsonText(f.name, reader.result);
+          dbDescription.value = parsed.description || f.name.replace(/\.json$/i,'');
+          questions = parsed.questions || [];
+          renderQuestionList();
+          cancelEdit();
+          alert(`Loaded ${questions.length} questions from ${f.name}`);
+          // Reset file input
+          fileLoadJson.value = '';
+        } catch (err) {
+          console.error(err);
+          alert('Failed to parse JSON file: ' + err.message);
+          fileLoadJson.value = '';
         }
       };
       reader.readAsText(f);
