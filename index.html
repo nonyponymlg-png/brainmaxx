@@ -137,7 +137,7 @@
   </div>
 
   <script>
-    // Study app logic (from original app)
+    // Study app logic with HTML support in questions
     const databases = []; // { name, raw, questions: [{text, choices, correctIndex}] }
     let currentDB = null;
     let tempOrder = [];
@@ -180,10 +180,26 @@
     const btnUploadTheme = document.getElementById('btn-upload-theme');
     const themeFilePicker = document.getElementById('theme-file-picker');
 
+    // Render question text with HTML support
+    function renderQuestionText(text) {
+      const container = document.createElement('div');
+      const parts = text.split(/(\[html\].*?\[\/html\])/);
+      parts.forEach(part => {
+        if (part.startsWith('[html]') && part.endsWith('[/html]')) {
+          const htmlContent = part.slice(6, -7);
+          const span = document.createElement('span');
+          span.innerHTML = htmlContent;
+          container.appendChild(span);
+        } else {
+          container.appendChild(document.createTextNode(part));
+        }
+      });
+      return container;
+    }
+
     function showMenu(menuEl) {
       [menuMain, menuDb, menuQuestion, menuAnswered, menuStats].forEach(m => m.classList.remove('visible'));
       menuEl.classList.add('visible');
-      // small accessibility: focus first button if present
       const firstBtn = menuEl.querySelector('button');
       if (firstBtn) firstBtn.focus();
     }
@@ -265,7 +281,12 @@
       if (tempOrder.length === 0) { tempOrder = currentDB.questions.map((_, i) => i); shuffle(tempOrder); }
       currentQuestionIndex = tempOrder.shift();
       const q = currentDB.questions[currentQuestionIndex];
-      questionScroll.textContent = q.text;
+      
+      // Render question with HTML support
+      questionScroll.innerHTML = '';
+      const questionEl = renderQuestionText(q.text);
+      questionScroll.appendChild(questionEl);
+      
       choicesDiv.innerHTML = '';
       selectedChoice = null;
       btnCheck.disabled = true;
@@ -322,7 +343,7 @@
       stats.forEach(s => {
         const li = document.createElement('li');
         const q = currentDB.questions[s.questionIndex];
-        li.textContent = `${s.correct ? '✓' : '✗'} ${q.text.split('\n')[0]} — ${(s.timeMs/1000).toFixed(2)}s`;
+        li.textContent = `${s.correct ? '✓' : '✗'} ${q.text.split('\n')[0].substring(0, 50)} — ${(s.timeMs/1000).toFixed(2)}s`;
         list.appendChild(li);
       });
       perQ.appendChild(list);
@@ -384,22 +405,22 @@
 
     // Add a small sample database so the app is testable immediately
     (function addSample() {
-      const sample = `Sample database for Geography
+      const sample = `Sample database for Math
 3
 1+4
-What is the capital of France?
-Paris
-London
-Berlin
-Madrid
-1
-2+4
-Name two contiguous US states that border California.
-Oregon
-Nevada
-Arizona
-Mexico
+What is 2[html]<sup>3</sup>[/html]?
+6
+8
+10
+12
 2
+2+4
+Solve: x[html]<sup>2</sup>[/html] = 16
+x = 4 or x = -4
+x = 4
+x = 16
+x = 2
+1
 3+3
 This question spans three lines.
 Line two of question.
@@ -407,8 +428,9 @@ Line three of question.
 Choice A
 Choice B
 Choice C
+1
 `;
-      const parsed = parseTuff('Sample Geography', sample);
+      const parsed = parseTuff('Sample Math', sample);
       parsed.raw = sample;
       databases.push(parsed);
     })();
