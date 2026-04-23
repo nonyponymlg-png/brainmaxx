@@ -18,10 +18,17 @@
     .question-item { padding:6px 0; border-bottom:1px dashed #eee; display:flex; justify-content:space-between; gap:8px; align-items:center; }
     .small { font-size:0.9rem; color:#444; }
     .muted { color:#666; font-size:0.9rem; }
+    .preview-pane { border:1px solid #ccc; padding:8px; background:#f9f9f9; border-radius:4px; margin-top:8px; min-height:40px; }
+    .info-box { background:#e8f4f8; border-left:4px solid #0288d1; padding:8px; margin:8px 0; border-radius:4px; font-size:0.9rem; }
   </style>
 </head>
 <body>
   <h1>.tuff Editor — BrainMaxx</h1>
+
+  <section class="info-box">
+    <strong>HTML Support:</strong> Wrap HTML sections with <code>[html]...[/html]</code> markers.
+    Example: <code>What is 2[html]<sup>3</sup>[/html]?</code>
+  </section>
 
   <section>
     <label>Database description (first line in .tuff):</label>
@@ -41,8 +48,10 @@
 
   <section>
     <h2 id="form-title">Add Question</h2>
-    <label>Question text (can be multiple lines):</label>
-    <textarea id="q-text" placeholder="Write the question here. Use new lines for multiple lines of question text."></textarea>
+    <label>Question text (can be multiple lines, use [html]...[/html] for math/HTML):</label>
+    <textarea id="q-text" placeholder="Example: What is 2[html]<sup>3</sup>[/html]?"></textarea>
+    <label style="margin-top:8px; color:#666; font-size:0.9rem;">Live Preview:</label>
+    <div id="preview-pane" class="preview-pane"></div>
 
     <label>Choices</label>
     <div id="choices" class="choices"></div>
@@ -67,8 +76,7 @@
   </section>
 
   <script>
-    // Simple .tuff editor
-    // Data model: questions = [{ text: "line1\nline2", choices: ["A","B"], correctIndex: 0 }]
+    // Simple .tuff editor with HTML support
     let questions = [];
     let editingIndex = -1;
 
@@ -82,6 +90,7 @@
     const btnDownload = document.getElementById('btn-download');
 
     const qText = document.getElementById('q-text');
+    const previewPane = document.getElementById('preview-pane');
     const choicesDiv = document.getElementById('choices');
     const btnAddChoice = document.getElementById('btn-add-choice');
     const btnResetChoices = document.getElementById('btn-reset-choices');
@@ -92,6 +101,23 @@
     const qList = document.getElementById('question-list');
     const qCount = document.getElementById('q-count');
     const formTitle = document.getElementById('form-title');
+
+    // Render HTML from escaped sections
+    function renderQuestionPreview(text) {
+      const container = document.createElement('div');
+      const parts = text.split(/(\[html\].*?\[\/html\])/);
+      parts.forEach(part => {
+        if (part.startsWith('[html]') && part.endsWith('[/html]')) {
+          const htmlContent = part.slice(6, -7);
+          const span = document.createElement('span');
+          span.innerHTML = htmlContent;
+          container.appendChild(span);
+        } else {
+          container.appendChild(document.createTextNode(part));
+        }
+      });
+      return container;
+    }
 
     // Helpers
     function createChoiceInput(value = '', idx = null, checked = false) {
@@ -123,14 +149,12 @@
 
     function resetChoiceFields() {
       choicesDiv.innerHTML = '';
-      // add two default choices
       choicesDiv.appendChild(createChoiceInput('', 0, true));
       choicesDiv.appendChild(createChoiceInput('', 1, false));
       ensureRadiosIndexed();
     }
 
     function ensureRadiosIndexed() {
-      // ensure each radio has dataset.idx matching position
       Array.from(choicesDiv.children).forEach((row, i) => {
         const radio = row.querySelector('input[type="radio"]');
         radio.dataset.idx = i;
@@ -147,7 +171,6 @@
     }
 
     function validateQuestion(q) {
-      // basic validation
       if (!q.text || q.text.trim() === '') return 'Question text cannot be empty.';
       if (!q.choices || q.choices.length < 2) return 'Provide at least two choices.';
       return null;
@@ -160,7 +183,7 @@
         item.className = 'question-item';
         const left = document.createElement('div');
         left.style.flex = '1';
-        const preview = q.text.split('\n')[0];
+        const preview = q.text.split('\n')[0].substring(0, 50);
         left.innerHTML = `<strong>#${idx+1}</strong> — ${escapeHtml(preview)} <div class="small">${q.choices.length} choices</div>`;
 
         const right = document.createElement('div');
@@ -189,6 +212,7 @@
       editingIndex = idx;
       formTitle.textContent = `Edit Question #${idx+1}`;
       qText.value = q.text;
+      updatePreview();
       choicesDiv.innerHTML = '';
       q.choices.forEach((c, i) => {
         choicesDiv.appendChild(createChoiceInput(c, i, i === q.correctIndex));
@@ -210,7 +234,14 @@
 
     function clearQuestionForm() {
       qText.value = '';
+      previewPane.innerHTML = '';
       resetChoiceFields();
+    }
+
+    function updatePreview() {
+      previewPane.innerHTML = '';
+      const preview = renderQuestionPreview(qText.value);
+      previewPane.appendChild(preview);
     }
 
     function addQuestionFromForm() {
@@ -238,13 +269,6 @@
 
     // File generation/parsing for .tuff format
     function generateTuffText(description, questionsArr) {
-      // First line: description
-      // Second line: total questions (number)
-      // For each question:
-      // header: "<nLines>+<nChoices>"
-      // nLines lines of question text
-      // nChoices lines of choices
-      // final line: correct answer (1-based index)
       const lines = [];
       lines.push(description || '');
       lines.push(String(questionsArr.length));
@@ -255,7 +279,7 @@
         lines.push(`${nLines}+${nChoices}`);
         qLines.forEach(l => lines.push(l));
         q.choices.forEach(c => lines.push(c));
-        lines.push(String((q.correctIndex || 0) + 1)); // 1-based
+        lines.push(String((q.correctIndex || 0) + 1));
       });
       return lines.join('\n');
     }
@@ -276,7 +300,6 @@
     }
 
     function parseTuffText(name, raw) {
-      // Similar parser as the app expects
       const lines = raw.replace(/\r/g,'').split('\n');
       let i = 0;
       const description = (lines[i++] ?? '');
@@ -301,7 +324,6 @@
         for (let ci = 0; ci < nChoices && i < lines.length; ci++) {
           choices.push(lines[i++] ?? '');
         }
-        // correct index line
         let correctRaw = (lines[i++] || '').trim();
         while (correctRaw === '' && i < lines.length) {
           correctRaw = (lines[i++] || '').trim();
@@ -321,21 +343,15 @@
     function parseJsonText(name, raw) {
       try {
         const data = JSON.parse(raw);
-        
-        // Validate JSON structure
         if (!data || typeof data !== 'object') {
           throw new Error('JSON must be an object');
         }
-        
         const description = data.description || name.replace(/\.json$/i,'');
         const questionsData = data.questions || [];
-        
         if (!Array.isArray(questionsData)) {
           throw new Error('Questions must be an array');
         }
-        
         const outQuestions = questionsData.map((q, idx) => {
-          // Validate each question
           if (!q.text || typeof q.text !== 'string') {
             throw new Error(`Question ${idx + 1}: text field is required and must be a string`);
           }
@@ -345,14 +361,12 @@
           if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.choices.length) {
             throw new Error(`Question ${idx + 1}: correctIndex must be a valid index (0-${q.choices.length - 1})`);
           }
-          
           return {
             text: q.text,
             choices: q.choices,
             correctIndex: q.correctIndex
           };
         });
-        
         return { name, description, questions: outQuestions };
       } catch (err) {
         throw new Error('JSON Parse Error: ' + err.message);
@@ -431,7 +445,6 @@
           renderQuestionList();
           cancelEdit();
           alert(`Loaded ${questions.length} questions from ${f.name}`);
-          // Reset file input
           fileLoadJson.value = '';
         } catch (err) {
           console.error(err);
@@ -441,6 +454,8 @@
       };
       reader.readAsText(f);
     });
+
+    qText.addEventListener('input', updatePreview);
 
     // Utility
     function escapeHtml(s) {
